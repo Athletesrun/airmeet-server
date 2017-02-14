@@ -18,6 +18,7 @@ const express = require("express"),
 		console.log(new Date() + "\nListening on port " + port);
 	});
 
-app.use(require("./routes/routes.js")());
+app.use(bodyParser.json());
+app.use(require("./routes/routes.js")(knex));
 
 const io = require("./sockets/sockets.js").listen(server);
