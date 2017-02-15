@@ -1,100 +1,102 @@
 /*
  * This test is used to verify that the server is responding to all requests properly.
  *
- * ES6 arrow functions aren't used here because mocha doesn't like them
+ * ES6 arrow functions aren"t used here because mocha doesn"t like them
  *
- * To use, run `mocha` or `npm test` from the project's root directory
+ * To use, run `mocha` or `npm test` from the project"s root directory
  * Mocha must be installed either way.
  */
 
 "use strict";
 
-const request = require('request'),
-	expect = require('chai').expect,
-	assert = require('chai').assert,
-	io = require('socket.io-client'),
-	url = 'http://localhost:8081',
-	socket = io.connect(url),
-	options = {
-		transports: ['websockets'],
-		'force new connection': true
-	};
+const request = require("request"),
+	expect = require("chai").expect,
+	assert = require("chai").assert,
+	url = "http://localhost:8080";
 
-let authenticated,
-	user = { //This user is used in the tests when creating an account, logging in, and accessing/creating data
-		email: Math.round(Math.random() * 10000).toString() + '@gmail.com',
-		password: 'password',
-		name: 'Ben Wingerter',
-		quotes: []
-	};
+let user = { //This user is used in the tests when creating an account, logging in, and accessing/creating data
+		email: Math.round(Math.random() * 10000).toString() + "@gmail.com",
+		password: "password",
+		firstName: "Ben",
+		lastName: "Wingerter"
+	},
+	authToken;
 
-describe('Application features: ', function() {
+describe("Application features: ", function() {
 
-	describe('Create and Login', function() {
+	describe("Create and Login", function() {
 
-		it('Create account', function(done) {
+		it("Create account", function(done) {
 
 			const options = {
-				url: url + '/api/accounts/create',
-				method: 'POST',
+				url: url + "/api/accounts/register",
+				method: "POST",
 				json: user
 			};
 
 			request(options, function(error, resonse, body) {
-				expect(body.status).to.equal('success');
+
+				expect(body.status).to.equal("success");
+				expect(body.token).to.be.a("string");
+
+				authToken = body.token;
+
 				done();
+
 			});
 
 		});
 
-		it('Login', function (done) {
+		it("Login", function (done) {
 
-			const options = {
-				url: url + '/api/accounts/login',
-				method: 'POST',
-				json: {
-					email: user.email,
-					password: user.password
-				}
-			};
+			setTimeout(() => {
 
-			request(options, function (error, resonse, body) {
-				user.token = body.token;
-				expect(body.status).to.equal('success');
-				done();
-			});
+				const options = {
+					url: url + "/api/accounts/login",
+					method: "POST",
+					json: {
+						email: user.email,
+						password: user.password
+					}
+				};
+
+				request(options, function (error, resonse, body) {
+
+					expect(body.status).to.equal("success");
+					expect(body.token).to.be.a("string");
+
+					done();
+
+				});
+
+			}, 1000);
 		});
 
 	});
 
-	describe('Websockets', function() {
+	describe("API functionality", function() {
 
-		it('Handshake', function (done) {
+		it("getUserProfile", function (done) {
 
-			//Set timeout to give earlier tests a chance to set user.token. Mocha is asyncronous so tests don't run in order
-			this.timeout(10000);
+			const options = {
+				url: url + "/api/getUserProfile",
+				method: "POST",
+				json: {
+					userId: 10,
+					token: authToken
+				}
+			};
 
-			setTimeout(function () {
+			request(options, function (error, resonse, body) {
 
-				//socket = io.connect(url);
-				authenticated = io.connect(url + '/authenticated');
+				expect(body.firstName).to.equal("Jim");
+				expect(body.lastName).to.equal("Collison");
+				expect(body.email).to.equal("jim@ben.com");
+				expect(body.id).to.equal(10);
+				done();
 
-				authenticated.on('connect', function () {
-					authenticated.on('authenticated', function () {
-						done();
-					});
-
-					authenticated.on('error', function (error) {
-						throw new Error('Socket handshake error');
-					});
-
-					authenticated.on('unauthorized', function (error) {
-						throw new Error('Socket handshake error');
-					});
-
-					authenticated.emit('authenticate', {token: user.token});
-				});
-			}, 2000);
+			});
 		});
+
 	});
 });
