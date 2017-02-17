@@ -14,7 +14,9 @@ const router = require("express").Router(),
     check = require("check-types"),
 
     parametersMessage = "Missing required parameters",
-    unauthorizedMessage = "Incorrect email and/or password";
+    unauthorizedMessage = "Incorrect email and/or password",
+
+	testEventCode = "ben";
 
 function generateToken(userId, callback) {
 
@@ -31,35 +33,59 @@ function generateToken(userId, callback) {
 }
 
 
-//@TODO verify that the user if a member of the event
 
-function authMiddleware(req, res, next) {
-	if(check.string(req.body.token)) {
+module.exports = (knex) => {
 
-		jwt.verify(req.body.token, publicKey, (err, decoded) => {
-			if(err) {
 
-				console.log("JWT Verify error: " + err);
-				res.sendStatus(500);
+	//@TODO verify that the user if a member of the event
+	function authMiddleware(req, res, next) {
+		if(check.string(req.body.token)) {
 
-			} else {
+			jwt.verify(req.body.token, publicKey, (err, decoded) => {
+				if(err) {
 
-				res.locals.userId = decoded.userId; //res.locals used to pass data along request. Allow API methods access to userId
+					console.log("JWT Verify error: " + err);
+					res.sendStatus(500);
+
+				} else {
+
+					res.locals.userId = decoded.userId; //res.locals used to pass data along request. Allow API methods access to userId
+
+					next();
+
+				}
+			});
+
+		} else {
+			res.send({
+				status: "error",
+				message: parametersMessage
+			})
+		}
+	}
+
+	function eventMiddleware(req, res, next) {
+
+		knex.select("event").from("users").where("id", "=", res.locals.userId).then((rows) => {
+
+			if(check.array(rows) && check.nonEmptyString(rows[0].event)) {
+				res.locals.event = rows[0].event;
+
+				console.log(res.locals.event);
 
 				next();
 
+			} else {
+
+				res.send({
+					status: "error",
+					message: "Not registered in any events"
+				});
+
 			}
+
 		});
-
-	} else {
-		res.send({
-			status: "error",
-			message: parametersMessage
-		})
 	}
-}
-
-module.exports = (knex) => {
 
     router.get("/", (req, res) => {
         res.send("Hello world!");
@@ -164,7 +190,7 @@ module.exports = (knex) => {
 
     });
 
-    router.post("/api/getUserProfile", [authMiddleware], (req, res) => {
+    router.post("/api/getUserProfile", [authMiddleware, eventMiddleware], (req, res) => {
 
 	    if(check.number(req.body.userId)) {
 
@@ -193,7 +219,7 @@ module.exports = (knex) => {
 
     });
 
-    router.post("/api/getOwnProfile", [authMiddleware], (req, res) => {
+    router.post("/api/getOwnProfile", [authMiddleware, eventMiddleware], (req, res) => {
 
     	knex.select("*").from("users").where("id", "=", res.locals.userId).then((rows) => {
 
@@ -203,43 +229,73 @@ module.exports = (knex) => {
 
     });
 
-    router.post("/api/getAllProfiles", [authMiddleware], (req, res) => {
-	    res.send("hello world");
+    router.post("/api/getAllProfiles", [authMiddleware, eventMiddleware], (req, res) => {
+
+	        knex.select("*").from("users").then((rows) => {
+
+	            res.send(rows);
+
+		    });
+
     });
 
-    router.post("/api/updateProfile", [authMiddleware], (req, res) => {
+    router.post("/api/updateProfile", [authMiddleware, eventMiddleware], (req, res) => {
         res.send("hello world");
     });
 
-    router.post("/api/getMessagesBetweenUser", [authMiddleware], (req, res) => {
+    router.post("/api/getMessagesBetweenUser", [authMiddleware, eventMiddleware], (req, res) => {
         res.send("hello world");
     });
 
-    router.post("/api/sendMessage", [authMiddleware], (req, res) => {
+    router.post("/api/sendMessage", [authMiddleware, eventMiddleware], (req, res) => {
         res.send("hello world");
     });
 
-    router.post("/api/getMessages", [authMiddleware], (req, res) => {
+    router.post("/api/getMessages", [authMiddleware, eventMiddleware], (req, res) => {
         res.send("hello world");
     });
 
-    router.post("/api/searchUsers", [authMiddleware], (req, res) => {
+    router.post("/api/searchUsers", [authMiddleware, eventMiddleware], (req, res) => {
         res.send("hello world");
     });
 
     router.post("/api/joinEvent", [authMiddleware], (req, res) => {
-        res.send("hello world");
+
+    	if(check.string(req.body.event)) {
+
+    		if(req.body.event === testEventCode) {
+
+			    knex("users").where("id", "=", res.locals.userId).update({
+				    event: "testEvent"
+			    });
+
+			    res.send({
+				    status: "success"
+			    });
+
+		    } else {
+
+    			res.send({
+    				status: "error",
+				    message: "Invalid event code"
+			    });
+
+		    }
+
+	    } else {
+    		res.send({
+    			status: "error",
+			    message: parametersMessage
+		    })
+	    }
+
     });
 
-    router.post("/api/getEventInfo", [authMiddleware], (req, res) => {
-        res.send("hello world");
-    });
-
-    router.post("/api/joinEvent", [authMiddleware], (req, res) => {
+    router.post("/api/getEventInfo", [authMiddleware, eventMiddleware], (req, res) => {
         res.send("hello world");
     });
     
-    router.post("/api/leaveEvent", [authMiddleware], (req, res) => {
+    router.post("/api/leaveEvent", [authMiddleware, eventMiddleware], (req, res) => {
         res.send("hello world");
     });
 

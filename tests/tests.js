@@ -76,10 +76,57 @@ describe("Application features: ", function() {
 
 	describe("API functionality", function() {
 
-		it("getUserProfile", function (done) {
+		it("joinEvent", function(done) {
 
 			const options = {
-				url: url + "/api/getUserProfile",
+				url: url + "/api/joinEvent",
+				method: "POST",
+				json: {
+					token: authToken,
+					event: "ben"
+				}
+			};
+
+			request(options, function (error, response, body) {
+
+				expect(body.status).to.equal("success");
+
+				done();
+
+			});
+
+		});
+
+		it("getUserProfile", function (done) {
+
+			setTimeout(function() {
+				const options = {
+					url: url + "/api/getUserProfile",
+					method: "POST",
+					json: {
+						userId: 10,
+						token: authToken
+					}
+				};
+
+				request(options, function (error, resonse, body) {
+
+					console.log(body);
+
+					expect(body.firstName).to.equal("Jim");
+					expect(body.lastName).to.equal("Collison");
+					expect(body.email).to.equal("jim@ben.com");
+					expect(body.id).to.equal(10);
+					done();
+
+				});
+			}, 1000);
+		});
+
+		it("getAllProfiles", function(done) {
+
+			const options = {
+				url: url + "/api/getAllProfiles",
 				method: "POST",
 				json: {
 					userId: 10,
@@ -89,14 +136,15 @@ describe("Application features: ", function() {
 
 			request(options, function (error, resonse, body) {
 
-				expect(body.firstName).to.equal("Jim");
-				expect(body.lastName).to.equal("Collison");
-				expect(body.email).to.equal("jim@ben.com");
-				expect(body.id).to.equal(10);
+				expect(body).to.be.an('array');
+				expect(body).to.not.be.empty;
 				done();
 
 			});
+
 		});
+
+
 
 	});
 });
