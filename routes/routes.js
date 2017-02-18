@@ -4,11 +4,12 @@ const router = require("express").Router(),
 
     fs = require("fs"),
 
+    npmi = require("npmi"),
+
     jwt = require("jsonwebtoken"),
     privateKey = fs.readFileSync("./keys/jwt.private.key"),
     publicKey = fs.readFileSync("./keys/jwt.public.key"),
 
-    bcrypt = require('bcrypt'),
     saltRounds = 12,
 
     check = require("check-types"),
@@ -17,6 +18,46 @@ const router = require("express").Router(),
     unauthorizedMessage = "Incorrect email and/or password",
 
 	testEventCode = "ben";
+
+let bcrypt = require('bcryptjs');
+
+/*if(process.platform === "win32") {
+
+    const options = {
+        name: "bcryptjs",
+        path: ".",
+        forceInstall: false
+    }
+
+    npmi(options, (err, result) => {
+
+        if(err) {
+            console.log("Error: ");
+            console.log(err);
+        } else {
+            console.log("bcryptjs installed");
+        }
+
+    });
+
+} else {
+
+    const options = {
+        name: "bcrypt",
+        path: ".",
+        forceInstall: false
+    }
+
+    npmi(options, (err, result) => {
+        if(err) {
+            console.log("Error: ");
+            console.log(err);
+        } else {
+            console.log("bcrypt installed");
+        }
+    });
+
+}*/
 
 function generateToken(userId, callback) {
 
@@ -243,10 +284,6 @@ module.exports = (knex) => {
         res.send("hello world");
     });
 
-    router.post("/api/getMessagesBetweenUser", [authMiddleware, eventMiddleware], (req, res) => {
-        res.send("hello world");
-    });
-
     router.post("/api/sendMessage", [authMiddleware, eventMiddleware], (req, res) => {
         res.send("hello world");
     });
@@ -256,7 +293,21 @@ module.exports = (knex) => {
     });
 
     router.post("/api/searchUsers", [authMiddleware, eventMiddleware], (req, res) => {
-        res.send("hello world");
+
+        if(check.string(req.body.name)) {
+        
+            //@todo implement searching for things other than name
+
+            knex.raw("SELECT * FROM users q WHERE to_tsvector('english', text || ' ' || name) @@ to_tsquery('english', '" + query + "' )").then((response) => {
+                console.log(response);
+            })
+        
+        } else {
+            res.send({
+                status: "eror",
+                message: parametersMessage
+            });
+        }
     });
 
     router.post("/api/joinEvent", [authMiddleware], (req, res) => {
@@ -264,6 +315,8 @@ module.exports = (knex) => {
     	if(check.string(req.body.event)) {
 
     		if(req.body.event === testEventCode) {
+
+                console.log(res.locals.userId); 
 
 			    knex("users").where("id", "=", res.locals.userId).update({
 				    event: "testEvent"
@@ -292,7 +345,15 @@ module.exports = (knex) => {
     });
 
     router.post("/api/getEventInfo", [authMiddleware, eventMiddleware], (req, res) => {
-        res.send("hello world");
+
+        //@todo return real event info
+
+        res.send({
+            name: "Ben's Event",
+            date: new Date(),
+            website: "https://www.google.com"
+        });
+
     });
     
     router.post("/api/leaveEvent", [authMiddleware, eventMiddleware], (req, res) => {

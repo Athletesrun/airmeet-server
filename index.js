@@ -1,5 +1,7 @@
 "use strict";
 
+//@todo use npmi to programatically install bcrypt or bcryptjs
+
 const express = require("express"),
 
 	app = express(),

@@ -49,32 +49,30 @@ describe("Application features: ", function() {
 
 		it("Login", function (done) {
 
-			setTimeout(() => {
+			const options = {
+				url: url + "/api/accounts/login",
+				method: "POST",
+				json: {
+					email: user.email,
+					password: user.password
+				}
+			};
 
-				const options = {
-					url: url + "/api/accounts/login",
-					method: "POST",
-					json: {
-						email: user.email,
-						password: user.password
-					}
-				};
+			request(options, function (error, resonse, body) {
 
-				request(options, function (error, resonse, body) {
+				expect(body.status).to.equal("success");
+				expect(body.token).to.be.a("string");
 
-					expect(body.status).to.equal("success");
-					expect(body.token).to.be.a("string");
+				done();
 
-					done();
-
-				});
-
-			}, 1000);
+			});
 		});
 
 	});
 
 	describe("API functionality", function() {
+
+		this.timeout(1000);
 
 		it("joinEvent", function(done) {
 
@@ -99,31 +97,48 @@ describe("Application features: ", function() {
 
 		it("getUserProfile", function (done) {
 
-			setTimeout(function() {
-				const options = {
-					url: url + "/api/getUserProfile",
-					method: "POST",
-					json: {
-						userId: 10,
-						token: authToken
-					}
-				};
+			const options = {
+				url: url + "/api/getUserProfile",
+				method: "POST",
+				json: {
+					userId: 10,
+					token: authToken
+				}
+			};
 
-				request(options, function (error, resonse, body) {
+			request(options, function (error, resonpse, body) {
 
-					console.log(body);
+				console.log(body);	
 
-					expect(body.firstName).to.equal("Jim");
-					expect(body.lastName).to.equal("Collison");
-					expect(body.email).to.equal("jim@ben.com");
-					expect(body.id).to.equal(10);
-					done();
+				expect(body.firstName).to.equal("Jim");
+				expect(body.lastName).to.equal("Collison");
+				expect(body.email).to.equal("jim@ben.com");
+				expect(body.id).to.equal(10);
+				done();
 
-				});
-			}, 1000);
+			});
 		});
 
-		it("getAllProfiles", function(done) {
+		it.skip("getOwnProfile", function(done) {
+
+			const options = {
+					url: url + "/api/getOwnProfile",
+					method: "POST"
+			};
+
+			request(options, function (error, response, body) {
+
+				expect(body.firstName).to.equal(user.firstName);
+				expect(body.lastName).to.equal(user.lastName);
+				expect(body.email).to.equal(user.email);
+
+				done();
+
+			})
+
+		});
+
+		it.skip("getAllProfiles", function(done) {
 
 			const options = {
 				url: url + "/api/getAllProfiles",
@@ -134,7 +149,7 @@ describe("Application features: ", function() {
 				}
 			};
 
-			request(options, function (error, resonse, body) {
+			request(options, function (error, response, body) {
 
 				expect(body).to.be.an('array');
 				expect(body).to.not.be.empty;
@@ -144,7 +159,46 @@ describe("Application features: ", function() {
 
 		});
 
+		it.skip("updateProfile", function(done) {
 
+			user.twitter = "Athletesrun";
+
+			const options = {
+				url: url + "/api/getAllProfiles",
+				method: "POST",
+				json: {
+					twitter: user.twitter
+				}
+			};
+
+			request(options, function(error, response, body) {
+
+				expect(body.status).to.equal("success");
+
+				done();
+
+			});
+		});
+
+		it.skip("getMessages", function(done) {
+
+			//@todo send some messages
+
+			const options = {
+				url: url + "/api/getMessages",
+				method: "POST"
+			}
+
+			request(options, function(error, response, body) {
+
+				expect(body).to.not.be.empty;
+				expect(body).to.be.an('object');
+
+				done();
+
+			});
+
+		});
 
 	});
 });
