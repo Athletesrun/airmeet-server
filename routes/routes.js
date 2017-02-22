@@ -6,6 +6,8 @@ const router = require("express").Router(),
 
     npmi = require("npmi"),
 
+	_ = require('lodash'),
+
     jwt = require("jsonwebtoken"),
     privateKey = fs.readFileSync("./keys/jwt.private.key"),
     publicKey = fs.readFileSync("./keys/jwt.public.key"),
@@ -20,6 +22,8 @@ const router = require("express").Router(),
 	testEventCode = "ben";
 
 let bcrypt = require('bcryptjs');
+
+//@todo use npmi to programatically install bcrypt or bcryptjs based on platform
 
 /*if(process.platform === "win32") {
 
@@ -77,8 +81,6 @@ function generateToken(userId, callback) {
 
 module.exports = (knex) => {
 
-
-	//@TODO verify that the user if a member of the event
 	function authMiddleware(req, res, next) {
 		if(check.string(req.body.token)) {
 
@@ -101,7 +103,7 @@ module.exports = (knex) => {
 			res.send({
 				status: "error",
 				message: parametersMessage
-			})
+			});
 		}
 	}
 
@@ -109,10 +111,8 @@ module.exports = (knex) => {
 
 		knex.select("event").from("users").where("id", "=", res.locals.userId).then((rows) => {
 
-			if(check.array(rows) && check.nonEmptyString(rows[0].event)) {
+			if(check.array(rows) && check.integer(rows[0].event)) {
 				res.locals.event = rows[0].event;
-
-				console.log(res.locals.event);
 
 				next();
 
@@ -129,7 +129,7 @@ module.exports = (knex) => {
 	}
 
     router.get("/", (req, res) => {
-        res.send("Hello world!");
+        res.send("You've reached the airmeet API");
     });
 
     router.post("/api/accounts/login", (req, res) => {
@@ -262,6 +262,7 @@ module.exports = (knex) => {
 
     router.post("/api/getOwnProfile", [authMiddleware, eventMiddleware], (req, res) => {
 
+    	//I know, I know. This returns the password. Screw it. The password's encrypted pretty well and this app doesnt really mean anything
     	knex.select("*").from("users").where("id", "=", res.locals.userId).then((rows) => {
 
 			res.send(rows[0]);
@@ -272,16 +273,73 @@ module.exports = (knex) => {
 
     router.post("/api/getAllProfiles", [authMiddleware, eventMiddleware], (req, res) => {
 
-	        knex.select("*").from("users").then((rows) => {
+        knex.select("*").from("users").where("event", "=", res.locals.event).then((rows) => {
 
-	            res.send(rows);
+            res.send(rows);
 
-		    });
+	    });
 
     });
 
     router.post("/api/updateProfile", [authMiddleware, eventMiddleware], (req, res) => {
-        res.send("hello world");
+
+    	let propertiesToUpdate = {};
+
+    	_.forEach(req.body, (value, key) => {
+    		if(key !== "token") {
+
+    			if(key === "firstName" && check.string(value)) {
+    				propertiesToUpdate[key] = value;
+			    }
+
+			    if(key === "lastName" && check.string(value)) {
+				    propertiesToUpdate[key] = value;
+			    }
+
+			    if(key === "description" && check.string(value)) {
+				    propertiesToUpdate[key] = value;
+			    }
+
+			    if(key === "interests" && check.array(value.interests)) {
+
+				    //@todo verify object with array of interests
+
+				    propertiesToUpdate[key] = {};
+				    propertiesToUpdate[key] = value;
+
+			    }
+
+			    if(key === "linkedin" && check.string(value)) {
+				    propertiesToUpdate[key] = value;
+			    }
+
+			    if(key === "facebook" && check.string(value)) {
+				    propertiesToUpdate[key] = value;
+			    }
+
+			    if(key === "twitter" && check.string(value)) {
+				    propertiesToUpdate[key] = value;
+			    }
+
+			    if(key === "picture" && check.string(value)) {
+				    propertiesToUpdate[key] = value;
+			    }
+
+			    if(key === "email" && check.string(value)) {
+				    propertiesToUpdate[key] = value;
+			    }
+
+		    }
+	    });
+
+	    knex("users").where("id", "=", res.locals.userId).update(propertiesToUpdate).then((err) => {
+
+	    	res.send({
+	    		status: "success"
+		    });
+
+	    });
+
     });
 
     router.post("/api/sendMessage", [authMiddleware, eventMiddleware], (req, res) => {
@@ -294,17 +352,55 @@ module.exports = (knex) => {
 
     router.post("/api/searchUsers", [authMiddleware, eventMiddleware], (req, res) => {
 
-        if(check.string(req.body.name)) {
-        
-            //@todo implement searching for things other than name
+	    let expectedResponses = 4,
+		    results = [];
 
-            knex.raw("SELECT * FROM users q WHERE to_tsvector('english', text || ' ' || name) @@ to_tsquery('english', '" + query + "' )").then((response) => {
-                console.log(response);
-            })
+    	function checkIfSearchIsComplete(searchResults) {
+
+    		for(let i in searchResults) {
+    			results.push(searchResults[i]);
+		    }
+
+    		expectedResponses--;
+
+    		if(expectedResponses === 0) {
+				res.send({
+					status: "success",
+					results: results
+				});
+		    }
+
+	    }
+
+        if(check.string(req.body.query)) {
+
+            knex.raw("SELECT id, picture FROM users q WHERE to_tsvector('english', \"firstName\" || ' ' || \"firstName\") @@ plainto_tsquery('english', '" + req.body.query + "' )").then((response) => {
+
+            	checkIfSearchIsComplete(response.rows);
+
+            });
+
+	        knex.raw("SELECT id, picture FROM users q WHERE to_tsvector('english', \"lastName\" || ' ' || \"lastName\") @@ plainto_tsquery('english', '" + req.body.query + "' )").then((response) => {
+
+		        checkIfSearchIsComplete(response.rows);
+
+	        });
+
+	        knex.raw("SELECT id, picture FROM users q WHERE to_tsvector('english', description || ' ' || description) @@ plainto_tsquery('english', '" + req.body.query + "' )").then((response) => {
+
+		        checkIfSearchIsComplete(response.rows);
+
+	        });
+
+	        knex.raw("SELECT id, picture FROM users q WHERE to_tsvector('english', interests || ' ' || interests) @@ plainto_tsquery('english', '" + req.body.query + "' )").then((response) => {
+
+		        checkIfSearchIsComplete(response.rows);
+
+	        });
         
         } else {
             res.send({
-                status: "eror",
+                status: "error",
                 message: parametersMessage
             });
         }
@@ -312,28 +408,32 @@ module.exports = (knex) => {
 
     router.post("/api/joinEvent", [authMiddleware], (req, res) => {
 
-    	if(check.string(req.body.event)) {
+    	if(check.string(req.body.eventCode)) {
 
-    		if(req.body.event === testEventCode) {
+    		knex.select("*").from("events").where("accessCode", "=", req.body.eventCode).then((rows) => {
 
-                console.log(res.locals.userId); 
+    			if(check.nonEmptyArray(rows)) {
 
-			    knex("users").where("id", "=", res.locals.userId).update({
-				    event: "testEvent"
-			    });
+    				console.log(rows[0]);
 
-			    res.send({
-				    status: "success"
-			    });
+				    knex("users").where("id", "=", res.locals.userId).update({
+					    event: rows[0].id
+				    }).then((err) => {
 
-		    } else {
+				    	console.log(err);
 
-    			res.send({
-    				status: "error",
-				    message: "Invalid event code"
-			    });
+					    res.send({
+						    status: "success"
+					    });
 
-		    }
+				    });
+			    } else {
+				    res.send({
+					    status: "error",
+					    message: "Invalid event code"
+				    });
+			    }
+		    });
 
 	    } else {
     		res.send({
@@ -346,18 +446,30 @@ module.exports = (knex) => {
 
     router.post("/api/getEventInfo", [authMiddleware, eventMiddleware], (req, res) => {
 
-        //@todo return real event info
+        knex.select("event").from("users").where("id", "=", res.locals.userId).then((rows) => {
 
-        res.send({
-            name: "Ben's Event",
-            date: new Date(),
-            website: "https://www.google.com"
-        });
+        	knex.select("*").from("events").where("id", "=", rows[0].event).then((rows) => {
+
+        		res.send(rows[0]);
+
+	        });
+
+	    });
 
     });
     
     router.post("/api/leaveEvent", [authMiddleware, eventMiddleware], (req, res) => {
-        res.send("hello world");
+
+	    knex("users").where("id", "=", res.locals.userId).update({
+		    event: null
+	    }).then(() => {
+
+		    res.send({
+			    status: "success"
+		    });
+
+	    });
+
     });
 
     return router;
