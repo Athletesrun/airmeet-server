@@ -416,7 +416,7 @@ module.exports = (knex) => {
 
     				console.log(rows[0]);
 
-				    knex("users").where("id", "=", res.locals.userId).update({
+				    knex("users").where("id", "=", res.locals.userId).update({ //@todo fix user not updating. FUCK COMPUTERS
 					    event: rows[0].id
 				    }).then((err) => {
 
