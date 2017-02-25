@@ -227,6 +227,28 @@ describe("Application features: ", function() {
 
 		it.skip("sendMessage", function(done) {
 
+			//@todo send some messages
+
+			const options = {
+				url: url + "/api/getMessages",
+				method: "POST",
+				json: {
+					token: authToken,
+					sendTo: 10,
+					message: "My new message",
+
+				}
+			};
+
+			request(options, function(error, response, body) {
+
+				expect(body).to.not.be.empty;
+				expect(body).to.be.an("object");
+
+				done();
+
+			});
+
 		});
 
 		it.skip("getMessages", function(done) {

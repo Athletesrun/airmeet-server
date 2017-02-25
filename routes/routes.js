@@ -343,7 +343,11 @@ module.exports = (knex) => {
     });
 
     router.post("/api/sendMessage", [authMiddleware, eventMiddleware], (req, res) => {
-        res.send("hello world");
+
+    	if(check.integer(req.body.sendTo) && check.string(req.body.message)) {
+
+	    }
+
     });
 
     router.post("/api/getMessages", [authMiddleware, eventMiddleware], (req, res) => {
