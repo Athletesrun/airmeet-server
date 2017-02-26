@@ -16,7 +16,7 @@ const request = require("request"),
 	url = "http://localhost:8080";
 
 let user = { //This user is used in the tests when creating an account, logging in, and accessing/creating data
-		email: Math.round(Math.random() * 10000).toString() + "@gmail.com",
+		email: randomatic("Aa0", 10) + "@gmail.com",
 		password: "password",
 		firstName: "Ben",
 		lastName: "Wingerter"
@@ -225,16 +225,14 @@ describe("Application features: ", function() {
 			});
 		});
 
-		it.skip("sendMessage", function(done) {
-
-			//@todo send some messages
+		it("sendMessage", function(done) {
 
 			const options = {
-				url: url + "/api/getMessages",
+				url: url + "/api/sendMessage",
 				method: "POST",
 				json: {
 					token: authToken,
-					sendTo: 10,
+					receiver: 10,
 					message: "My new message",
 
 				}
@@ -242,8 +240,7 @@ describe("Application features: ", function() {
 
 			request(options, function(error, response, body) {
 
-				expect(body).to.not.be.empty;
-				expect(body).to.be.an("object");
+				expect(body.status).to.equal("success");
 
 				done();
 
@@ -251,13 +248,14 @@ describe("Application features: ", function() {
 
 		});
 
-		it.skip("getMessages", function(done) {
-
-			//@todo send some messages
+		it("getMessages", function(done) {
 
 			const options = {
 				url: url + "/api/getMessages",
-				method: "POST"
+				method: "POST",
+				json: {
+					token: authToken
+				}
 			};
 
 			request(options, function(error, response, body) {
