@@ -61,6 +61,8 @@ describe("Application features: ", function() {
 
 			request(options, function (error, response, body) {
 
+				console.log(body.token);
+
 				expect(body.status).to.equal("success");
 				expect(body.token).to.be.a("string");
 
@@ -73,25 +75,27 @@ describe("Application features: ", function() {
 
 	describe("API functionality", function() {
 
-		this.timeout(1000);
-
 		it("joinEvent", function(done) {
 
-			const options = {
-				url: url + "/api/joinEvent",
-				method: "POST",
-				json: {
-					token: authToken,
-					eventCode: "abcd"
-				}
-			};
+			setTimeout(function() {
+				const options = {
+					url: url + "/api/joinEvent",
+					method: "POST",
+					json: {
+						token: authToken,
+						eventCode: "abcd"
+					}
+				};
 
-			request(options, function (error, response, body) {
+				request(options, function (error, response, body) {
 
-				expect(body.status).to.equal("success");
+					console.log(body);
 
-				done();
+					expect(body.status).to.equal("success");
 
+					done();
+
+				});
 			});
 
 		});
@@ -136,7 +140,7 @@ describe("Application features: ", function() {
 
 				done();
 
-			})
+			});
 
 		});
 

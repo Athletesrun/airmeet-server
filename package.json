@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/Athletesrun/airmeet-server#readme",
   "dependencies": {
+    "algorithms": "^0.10.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.15.2",
     "chai": "^3.5.0",

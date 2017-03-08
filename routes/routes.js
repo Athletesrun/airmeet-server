@@ -19,9 +19,43 @@ const router = require("express").Router(),
 	parametersMessage = "Missing required parameters",
 	unauthorizedMessage = "Incorrect email and/or password",
 
-	testEventCode = "ben";
+	algorithms = require('algorithms');
 
 let bcrypt = require('bcryptjs');
+
+function sortMessagesByDate(messages) {
+    //Sort dates by using .valueOf(); It converts date to milliseconds from 1970.
+    //It's easy for sorting dates because the newer one is a bigger number
+
+    var dates = [];
+
+    //Convert all dates .valueOf() and push to dates[]
+    for(var i in messages) {
+        dates.push(messages[i].date.valueOf());
+    }
+
+    //Sort dates and reverse it to biggest-to-smallest(newest to oldest)
+    messages = algorithms.Sorting.quicksort(messages);
+    messages.reverse();
+
+    var sortedMessages = [];
+
+    //Match dates in quotes with sorted states and push everything to an array
+    for(var y in messages) {
+        for(var x in messages) {
+            if(dates[y] == messages[x].date.valueOf()) {
+                dates[y] = null;
+                sortedMessages[y] = messages[x];
+            }
+        }
+    }
+
+    for(var j in dates) {
+        dates[j] = new Date(dates[j]);
+    }
+
+    return sortedMessages;
+}
 
 //@todo use npmi to programatically install bcrypt or bcryptjs based on platform
 
@@ -151,7 +185,7 @@ module.exports = (knex) => {
 									status: "success",
 									token: token
 								});
-							})
+							});
 
 						} else {
 
@@ -217,7 +251,7 @@ module.exports = (knex) => {
 					res.send({
 						status: "error",
 						message: "User Already Exists"
-					})
+					});
 				}
 
 			});
@@ -226,7 +260,7 @@ module.exports = (knex) => {
 			res.send({
 				status: "error",
 				message: parametersMessage
-			})
+			});
 		}
 
 	});
@@ -250,7 +284,7 @@ module.exports = (knex) => {
 				}
 
 			});
-			
+
 		} else {
 			res.send({
 				status: "error",
@@ -267,13 +301,24 @@ module.exports = (knex) => {
 
 			res.send(rows[0]);
 
-		})
+		});
 
 	});
 
 	router.post("/api/getAllProfiles", [authMiddleware, eventMiddleware], (req, res) => {
 
 		knex.select("*").from("users").where("event", "=", res.locals.event).then((rows) => {
+
+			for(let i in rows) {
+
+				if(rows[i].id === res.locals.userId) {
+
+					rows.splice(i, 1);
+
+				}
+			}
+
+			console.log(rows);
 
 			res.send(rows);
 
@@ -347,7 +392,7 @@ module.exports = (knex) => {
 		if(check.integer(req.body.receiver) && check.string(req.body.message)) {
 
 			knex.select("*").from("users").where("id", "=", req.body.receiver).then((rows) => {
-				
+
 				if(rows[0]) {
 
 					let messageToSend = {
@@ -356,7 +401,7 @@ module.exports = (knex) => {
 						sender: res.locals.userId,
 						receiver: req.body.receiver,
 						event: res.locals.event
-					}
+					};
 
 					knex.insert(messageToSend).returning("id").into("messages").then((userId) => {
 
@@ -387,7 +432,7 @@ module.exports = (knex) => {
 	});
 
 	router.post("/api/getMessages", [authMiddleware, eventMiddleware], (req, res) => {
-		
+
 		knex.select("*").from("messages").where("sender", "=", res.locals.userId).orWhere("receiver", "=", res.locals.userId).then((rows) => {
 
 			let returnableObject = {};
@@ -423,7 +468,7 @@ module.exports = (knex) => {
 					//check to see if sender is already array of returnable object
 					if(returnableObject[rows[i].sender]) {
 
-						returnableObject[rows[i].sender].push(rows[i]); 
+						returnableObject[rows[i].sender].push(rows[i]);
 
 					} else {
 
@@ -436,6 +481,21 @@ module.exports = (knex) => {
 			}
 
 			//@todo oh god i need to sort these messages by date
+
+			let messageKeys = Object.keys(returnableObject);
+			let messageKeysInOrder = [];
+
+			for(let x in messageKeys) {
+
+				returnableObject[messageKeys[x]] = sortMessagesByDate(returnableObject[messageKeys[x]]);
+				//messageKeysInOrder.push()
+
+			}
+
+			/*algorithms.Sorting.quicksort(messageKeysInOrder);
+
+			console.log(returnableObject);*/
+
 
 			res.send(returnableObject);
 
@@ -490,7 +550,7 @@ module.exports = (knex) => {
 				checkIfSearchIsComplete(response.rows);
 
 			});
-		
+
 		} else {
 			res.send({
 				status: "error",
@@ -538,7 +598,7 @@ module.exports = (knex) => {
 			res.send({
 				status: "error",
 				message: parametersMessage
-			})
+			});
 		}
 
 	});
@@ -556,7 +616,7 @@ module.exports = (knex) => {
 		});
 
 	});
-	
+
 	router.post("/api/leaveEvent", [authMiddleware, eventMiddleware], (req, res) => {
 
 		knex("users").where("id", "=", res.locals.userId).update({
