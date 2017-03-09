@@ -83,7 +83,7 @@ describe("Application features: ", function() {
 					method: "POST",
 					json: {
 						token: authToken,
-						eventCode: "abcd"
+						eventCode: "D3e9aC9q"
 					}
 				};
 

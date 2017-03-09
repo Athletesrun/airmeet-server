@@ -19,18 +19,6 @@ pg.defaults.ssl = true;
 
 let knex;
 
-if(process.env.NODE_ENV === "production") {
-	knex = require("knex")({
-		client: "pg",
-		connection: "postgres://nlghwvfayvoifk:af3da8521ddd4a222cf85f36c84f68af569e169387479ed40fff6dd15dd82d91@ec2-107-20-163-238.compute-1.amazonaws.com:5432/dfic3203som2bm"
-	});
-} else {
-	knex = require("knex")({
-		client: "pg",
-		connection: "postgres://crjayodn:bCjl-9vY7T1vOyGsm99jSsX8gwVzyVIj@babar.elephantsql.com:5432/crjayodn"
-	});
-}
-
 app.use((req, res, next) => {
 	res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS');
@@ -39,7 +27,15 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(bodyParser.json({limit: '50mb'}));
-app.use(require("./routes/routes.js")(knex));
+app.get("/", (req, res) => {
+	res.send("You've reached the airmeet API");
+});
+
+app.use(bodyParser.json());
+
+app.use(require("./routes/accounts.routes.js"));
+app.use(require("./routes/events.routes.js"));
+app.use(require("./routes/messages.routes.js"));
+app.use(require("./routes/profiles.routes.js"));
 
 const io = require("./sockets/sockets.js").listen(server);
