@@ -318,8 +318,6 @@ module.exports = (knex) => {
 				}
 			}
 
-			console.log(rows);
-
 			res.send(rows);
 
 		});
@@ -431,7 +429,7 @@ module.exports = (knex) => {
 
 	});
 
-	router.post("/api/getMessages", [authMiddleware, eventMiddleware], (req, res) => {
+	router.post("/api/getMessages", [authMiddleware, eventMiddleware], (req, res) => { //@todo split up. make this only return conversations and last message and get conversations separately
 
 		knex.select("*").from("messages").where("sender", "=", res.locals.userId).orWhere("receiver", "=", res.locals.userId).then((rows) => {
 
@@ -485,12 +483,12 @@ module.exports = (knex) => {
 			let messageKeys = Object.keys(returnableObject);
 			let messageKeysInOrder = [];
 
-			for(let x in messageKeys) {
+			/*for(let x in messageKeys) {
 
 				returnableObject[messageKeys[x]] = sortMessagesByDate(returnableObject[messageKeys[x]]);
 				//messageKeysInOrder.push()
 
-			}
+			}*/
 
 			/*algorithms.Sorting.quicksort(messageKeysInOrder);
 
