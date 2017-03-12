@@ -9,40 +9,6 @@ const router = require("express").Router(),
 	authMiddleware = require("../middleware/auth.middleware.js"),
 	eventMiddleware = require("../middleware/event.middleware");
 
-function sortMessagesByDate(messages) {
-	//Sort dates by using .valueOf(); It converts date to milliseconds from 1970.
-	//It's easy for sorting dates because the newer one is a bigger number
-
-	let dates = [];
-
-	//Convert all dates .valueOf() and push to dates[]
-	for(let i in messages) {
-		dates.push(messages[i].date.valueOf());
-	}
-
-	//Sort dates and reverse it to biggest-to-smallest(newest to oldest)
-	messages = algorithms.Sorting.quicksort(messages);
-	messages.reverse();
-
-	let sortedMessages = [];
-
-	//Match dates in quotes with sorted states and push everything to an array
-	for(let y in messages) {
-		for(let x in messages) {
-			if(dates[y] == messages[x].date.valueOf()) {
-				dates[y] = null;
-				sortedMessages[y] = messages[x];
-			}
-		}
-	}
-
-	for(let j in dates) {
-		dates[j] = new Date(dates[j]);
-	}
-
-	return sortedMessages;
-}
-
 router.post("/api/sendMessage", [authMiddleware, eventMiddleware], (req, res) => {
 
 	if(check.integer(req.body.receiver) && check.string(req.body.message)) {
@@ -87,75 +53,112 @@ router.post("/api/sendMessage", [authMiddleware, eventMiddleware], (req, res) =>
 
 });
 
-router.post("/api/getMessages", [authMiddleware, eventMiddleware], (req, res) => { //@todo split up. make this only return conversations and last message and get conversations separately
+router.post("/api/getMessageList", [authMiddleware, eventMiddleware], (req, res) => {
 
 	knex.select("*").from("messages").where("sender", "=", res.locals.userId).orWhere("receiver", "=", res.locals.userId).then((rows) => {
 
-		let returnableObject = {};
+		rows.reverse();
+
+		let conversations = {
+			people: [],
+			lastMessages: [],
+			date: []
+		};
 
 		for(let i in rows) {
 
-			//convert user id's to string in order to use them as object properties
-			rows[i].sender = rows[i].sender.toString();
-			rows[i].receiver = rows[i].receiver.toString();
+			if(rows[i].sender == res.locals.userId) {
 
-			//differentiate sending and receiving
-			if(rows[i].sender === res.locals.userId.toString()) {
+				if(conversations.people.indexOf(rows[i].receiver) == "-1") {
 
-				//see if array in returnableObject already exists
-				if(returnableObject[rows[i].receiver]) {
-
-					//push to returnableObject
-					returnableObject[rows[i].receiver].push(rows[i]);
-
-				} else {
-
-					//create array in returnable object and push to it
-					returnableObject[rows[i].receiver] = [];
-					returnableObject[rows[i].receiver].push(rows[i]);
+					conversations.people.push(rows[i].receiver);
+					conversations.lastMessages.push(rows[i].message);
+					conversations.date.push(rows[i].date);
 
 				}
 
-			} else if(rows[i].receiver === res.locals.userId.toString()){
+			} else if(rows[i].receiver == res.locals.userId) {
 
-				//You won't be the star(name) of the conversation because you(senders) are never stars
-				//so simply add
-
-				//check to see if sender is already array of returnable object
-				if(returnableObject[rows[i].sender]) {
-
-					returnableObject[rows[i].sender].push(rows[i]);
-
-				} else {
-
-					returnableObject[rows[i].sender] = [];
-					returnableObject[rows[i].sender].push(rows[i]);
-
+				if (conversations.people.indexOf(rows[i].sender) == "-1") {
+					conversations.people.push(rows[i].sender);
+					conversations.lastMessages.push(rows[i].message);
+					conversations.date.push(rows[i].date);
 				}
+
 			}
 
 		}
 
-		//@todo oh god i need to sort these messages by date
+		let cleanConversations = [];
+		let conversationsCompleted = 0;
 
-		let messageKeys = Object.keys(returnableObject);
-		let messageKeysInOrder = [];
+		for(let i in conversations.people) {
 
-		/*for(let x in messageKeys) {
+			knex.select("firstName", "lastName", "id").from("users").where("id", "=", conversations.people[i]).then((rows) => {
 
-		 returnableObject[messageKeys[x]] = sortMessagesByDate(returnableObject[messageKeys[x]]);
-		 //messageKeysInOrder.push()
+				conversationsCompleted++;
 
-		 }*/
+				rows[0].lastMessage = conversations.lastMessages[i];
+				rows[0].date = conversations.date[i];
 
-		/*algorithms.Sorting.quicksort(messageKeysInOrder);
+				cleanConversations.push(rows[0]);
 
-		 console.log(returnableObject);*/
+				if(conversationsCompleted == conversations.people.length) {
 
+					let dates = [];
 
-		res.send(returnableObject);
+					for(let j in cleanConversations) {
+
+						dates.push(cleanConversations[j].date.getTime());
+
+					}
+
+					dates = algorithms.Sorting.quicksort(dates);
+
+					let sortedMessages = new Array(dates.length);
+
+					for(let x in dates) {
+
+						for(let y in cleanConversations) {
+
+							if(cleanConversations[y].date.getTime() === dates[x]) {
+
+								sortedMessages[x] = cleanConversations[y];
+
+							}
+
+						}
+
+					}
+
+					res.send(sortedMessages.reverse());
+
+				}
+
+			});
+
+		}
 
 	});
+
+});
+
+router.post("/api/getConversation", [authMiddleware, eventMiddleware], (req, res) => {
+
+	if(check.integer(req.body.userId)) {
+
+		knex.select("*").from("messages").where("sender", "=", req.body.userId).orWhere("receiver", "=", req.body.userId).then((rows) => {
+
+			res.send(rows);
+
+		});
+
+	} else {
+		res.send({
+			status: "error",
+			message: config.parametersMessage
+		})
+	}
 
 });
 
