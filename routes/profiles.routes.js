@@ -71,7 +71,7 @@ router.post("/api/getAllProfiles", [authMiddleware, eventMiddleware], (req, res)
 router.post("/api/updateProfile", [authMiddleware, eventMiddleware], (req, res) => {
 
     let propertiesToUpdate = {};
-
+    
     _.forEach(req.body, (value, key) => {
         if(key !== "token") {
 
@@ -116,16 +116,29 @@ router.post("/api/updateProfile", [authMiddleware, eventMiddleware], (req, res) 
                 propertiesToUpdate[key] = value;
             }
 
+            if(key === "phone" && check.number(value)) {
+                propertiesToUpdate[key] = value;
+            }
+
         }
     });
 
-    knex("users").where("id", "=", res.locals.userId).update(propertiesToUpdate).then((err) => {
+    if(Object.keys(propertiesToUpdate).length !== 0) {
+
+        knex("users").where("id", "=", res.locals.userId).update(propertiesToUpdate).then((err) => {
+
+            res.send({
+                status: "success"
+            });
+
+        });
+    } else {
 
         res.send({
             status: "success"
         });
 
-    });
+    }
 
 });
 
