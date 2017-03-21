@@ -4,7 +4,6 @@ const router = require("express").Router(),
 
     knex = require("../database/knex.js"),
 
-    bcrypt = require('bcrypt'),
     jwt = require("jsonwebtoken"),
 
 	saltRounds = 12,
@@ -12,6 +11,18 @@ const router = require("express").Router(),
 	check = require("check-types"),
 
 	config = require("../config/config.js");
+
+let bcrypt;
+
+if(process.platform === 'win32') {
+
+    bcrypt = require('bcryptjs');
+
+} else {
+
+    bcrypt = require('bcrypt');
+
+}
 
 function generateToken(userId, callback) {
 

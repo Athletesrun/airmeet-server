@@ -71,7 +71,7 @@ router.post("/api/getAllProfiles", [authMiddleware, eventMiddleware], (req, res)
 router.post("/api/updateProfile", [authMiddleware, eventMiddleware], (req, res) => {
 
     let propertiesToUpdate = {};
-    
+
     _.forEach(req.body, (value, key) => {
         if(key !== "token") {
 
@@ -93,6 +93,8 @@ router.post("/api/updateProfile", [authMiddleware, eventMiddleware], (req, res) 
 
                 propertiesToUpdate[key] = {};
                 propertiesToUpdate[key] = value;
+
+                console.log(propertiesToUpdate[key]);
 
             }
 
@@ -116,7 +118,7 @@ router.post("/api/updateProfile", [authMiddleware, eventMiddleware], (req, res) 
                 propertiesToUpdate[key] = value;
             }
 
-            if(key === "phone" && check.number(value)) {
+            if(key === "phone" && check.string(value)) {
                 propertiesToUpdate[key] = value;
             }
 

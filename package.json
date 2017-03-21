@@ -21,6 +21,7 @@
   "dependencies": {
     "algorithms": "^0.10.0",
     "bcryptjs": "^2.4.3",
+    "bcrypt": "*",
     "body-parser": "^1.15.2",
     "chai": "^3.5.0",
     "check-types": "^7.1.5",
