@@ -144,4 +144,60 @@ router.post("/api/updateProfile", [authMiddleware, eventMiddleware], (req, res) 
 
 });
 
+router.post("/api/searchProfiles", [authMiddleware, eventMiddleware], (req, res) => {
+
+	let expectedResponses = 4,
+		results = [];
+
+	function checkIfSearchIsComplete(searchResults) {
+
+		for(let i in searchResults) {
+			results.push(searchResults[i]);
+		}
+
+		expectedResponses--;
+
+		if(expectedResponses === 0) {
+			res.send({
+				status: "success",
+				results: results
+			});
+		}
+
+	}
+
+	if(check.string(req.body.query)) {
+
+		knex.raw("SELECT id, picture FROM users q WHERE to_tsvector('english', \"firstName\" || ' ' || \"firstName\") @@ plainto_tsquery('english', '" + req.body.query + "' )").then((response) => {
+
+			checkIfSearchIsComplete(response.rows);
+
+		});
+
+		knex.raw("SELECT id, picture FROM users q WHERE to_tsvector('english', \"lastName\" || ' ' || \"lastName\") @@ plainto_tsquery('english', '" + req.body.query + "' )").then((response) => {
+
+			checkIfSearchIsComplete(response.rows);
+
+		});
+
+		knex.raw("SELECT id, picture FROM users q WHERE to_tsvector('english', description || ' ' || description) @@ plainto_tsquery('english', '" + req.body.query + "' )").then((response) => {
+
+			checkIfSearchIsComplete(response.rows);
+
+		});
+
+		knex.raw("SELECT id, picture FROM users q WHERE to_tsvector('english', interests || ' ' || interests) @@ plainto_tsquery('english', '" + req.body.query + "' )").then((response) => {
+
+			checkIfSearchIsComplete(response.rows);
+
+		});
+
+	} else {
+		res.send({
+			status: "error",
+			message: config.parametersMessage
+		});
+	}
+});
+
 module.exports = router;

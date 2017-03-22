@@ -30,7 +30,7 @@ app.use((req, res, next) => {
 });
 
 app.get("/", (req, res) => {
-	res.send("You've reached the airmeet API");
+	res.send("You have reached the AirMeet API endpoint. Hurray!");
 });
 
 app.use(bodyParser.json());
