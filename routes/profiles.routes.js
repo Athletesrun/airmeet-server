@@ -168,25 +168,25 @@ router.post("/api/searchProfiles", [authMiddleware, eventMiddleware], (req, res)
 
 	if(check.string(req.body.query)) {
 
-		knex.raw("SELECT id, picture FROM users q WHERE to_tsvector('english', \"firstName\" || ' ' || \"firstName\") @@ plainto_tsquery('english', '" + req.body.query + "' )").then((response) => {
+		knex.raw("SELECT * FROM users q WHERE to_tsvector('english', \"firstName\" || ' ' || \"firstName\") @@ plainto_tsquery('english', '" + req.body.query + "' )").then((response) => {
 
 			checkIfSearchIsComplete(response.rows);
 
 		});
 
-		knex.raw("SELECT id, picture FROM users q WHERE to_tsvector('english', \"lastName\" || ' ' || \"lastName\") @@ plainto_tsquery('english', '" + req.body.query + "' )").then((response) => {
+		knex.raw("SELECT * FROM users q WHERE to_tsvector('english', \"lastName\" || ' ' || \"lastName\") @@ plainto_tsquery('english', '" + req.body.query + "' )").then((response) => {
 
 			checkIfSearchIsComplete(response.rows);
 
 		});
 
-		knex.raw("SELECT id, picture FROM users q WHERE to_tsvector('english', description || ' ' || description) @@ plainto_tsquery('english', '" + req.body.query + "' )").then((response) => {
+		knex.raw("SELECT * FROM users q WHERE to_tsvector('english', description || ' ' || description) @@ plainto_tsquery('english', '" + req.body.query + "' )").then((response) => {
 
 			checkIfSearchIsComplete(response.rows);
 
 		});
 
-		knex.raw("SELECT id, picture FROM users q WHERE to_tsvector('english', interests || ' ' || interests) @@ plainto_tsquery('english', '" + req.body.query + "' )").then((response) => {
+		knex.raw("SELECT * FROM users q WHERE to_tsvector('english', interests || ' ' || interests) @@ plainto_tsquery('english', '" + req.body.query + "' )").then((response) => {
 
 			checkIfSearchIsComplete(response.rows);
 
