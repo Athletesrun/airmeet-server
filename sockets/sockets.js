@@ -15,10 +15,7 @@ module.exports.listen = function(server) {
 
 	io.on("connection", (socket) => {
 
-		socket.on("connected", (socket) => {
-
-			console.log("Socket connected with jwt " + socket.handshake.decoded_token.userId);
-		});
+		console.log("Socket connected with jwt " + socket.decoded_token.userId);
 
 	});
 
