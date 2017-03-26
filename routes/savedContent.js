@@ -60,11 +60,12 @@ router.post("/api/getSavedConversations", authMiddleware, (req, res) => {
 
     knex.select("savedConversations").from("users").where("id", "=", res.locals.userId).then((rows) => {
 
-        let conversations = rows[0].savedConversations.savedConversations;
+        let savedConversations = rows[0].savedConversations.savedConversations;
 
-        if(conversations.length === 0) {
+        if(savedConversations.length === 0) {
 
             res.send([]);
+
         } else {
 
             knex.select("*").from("messages").where("sender", "=", res.locals.userId).orWhere("receiver", "=", res.locals.userId).then((rows) => {
@@ -101,7 +102,23 @@ router.post("/api/getSavedConversations", authMiddleware, (req, res) => {
 
         		}
 
-                //for(let i = conversations.people.length)
+                console.log(savedConversations);
+
+                let tempConversations = [];
+
+                for(let b = 0; b < conversations.people.length; b++) {
+
+                    if(savedConversations.indexOf(conversations.people[b]) >= 0) {
+
+                        tempConversations.push(conversations.people[b]);
+
+                    }
+
+                }
+
+                conversations.people = tempConversations;
+
+                console.log(conversations.people);
 
         		let cleanConversations = [];
         		let conversationsCompleted = 0;
@@ -155,6 +172,40 @@ router.post("/api/getSavedConversations", authMiddleware, (req, res) => {
             });
         }
     });
+
+});
+
+router.post("/api/getSavedConversation", authMiddleware, (req, res) => {
+
+    if(check.number(req.body.userId)) {
+
+        knex.select("savedConversations").from("users").where("id", "=", res.locals.userId).then((rows) => {
+
+            if(rows[0].savedConversations.savedConversations.indexOf(req.body.userId) != -1) {
+
+                knex.select("*").from("messages").where("sender", "=", req.body.userId).andWhere("receiver", "=", res.locals.userId).orWhere("receiver", "=", req.body.userId).andWhere("sender", "=", res.locals.userId).then((rows) => {
+
+        			res.send(rows);
+
+        		});
+
+            } else {
+
+                res.send({
+                    status: 'error',
+                    message: 'Messages are not saved with this user'
+                });
+
+            }
+
+        });
+
+    } else {
+        res.send({
+            status: 'error',
+            message: config.parametersMessage
+        });
+    }
 
 });
 
