@@ -152,7 +152,13 @@ router.post("/api/searchProfiles", [authMiddleware, eventMiddleware], (req, res)
 	function checkIfSearchIsComplete(searchResults) {
 
 		for(let i in searchResults) {
-			results.push(searchResults[i]);
+
+            if(searchResults[i].id !== res.locals.userId) {
+
+	           results.push(searchResults[i]);
+
+           }
+
 		}
 
 		expectedResponses--;

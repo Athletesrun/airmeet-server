@@ -54,7 +54,8 @@ router.post("/api/accounts/login", (req, res) => {
 
 							res.send({
 								status: "success",
-								token: token
+								token: token,
+                                id: rows[0].id
 							});
 						});
 
@@ -102,13 +103,23 @@ router.post("/api/accounts/register", (req, res) => {
 							email: req.body.email,
 							password: hashedPassword,
 							firstName: req.body.firstName,
-							lastName: req.body.lastName
+							lastName: req.body.lastName,
+                            savedConversations: {
+                                savedConversations: []
+                            },
+                            savedProfiles: {
+                                savedProfiles: []
+                            },
+                            interests: {
+                                interests: []
+                            }
 						}).returning("id").into("users").then((userId) => {
 
 							generateToken(userId[0], (token) => {
 								res.send({
 									status: "success",
-									token: token
+									token: token,
+                                    id: userId
 								});
 							});
 

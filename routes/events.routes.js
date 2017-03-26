@@ -6,6 +6,8 @@ const router = require("express").Router(),
 
     knex = require("../database/knex.js"),
 
+    config = require("../config/config.js"),
+
 	authMiddleware = require("../middleware/auth.middleware.js"),
 	eventMiddleware = require("../middleware/event.middleware");
 
@@ -17,22 +19,13 @@ router.post("/api/joinEvent", [authMiddleware], (req, res) => {
 
             if(check.nonEmptyArray(rows)) {
 
-                console.log(typeof rows[0].id);
-
-                console.log(rows[0].id);
-
-                console.log(res.locals.userId);
-
-                knex("users").where("id", "=", res.locals.userId).update({ //@todo fix user not updating. FUCK COMPUTERS
+                knex("users").where("id", "=", res.locals.userId).update({
                     event: rows[0].id
                 }).then((err) => {
 
-                    console.log('got here');
-
-                    console.log(err);
-
                     res.send({
-                        status: "success"
+                        status: "success",
+                        eventId: rows[0].id
                     });
 
                 });
