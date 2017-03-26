@@ -15,7 +15,9 @@ module.exports.listen = function(server) {
 
 	io.on("connection", (socket) => {
 
-		console.log("Socket connected with jwt " + socket.decoded_token.userId);
+		socket.on("shareLocation", (data) => {
+			console.log('shareLocation');
+		});
 
 	});
 
