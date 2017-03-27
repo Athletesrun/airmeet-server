@@ -40,5 +40,3 @@ app.use(require("./routes/events.routes.js"));
 app.use(require("./routes/messages.routes.js"));
 app.use(require("./routes/profiles.routes.js"));
 app.use(require("./routes/savedContent"));
-
-const io = require("./sockets/sockets.js").listen(server);
