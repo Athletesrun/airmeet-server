@@ -133,7 +133,7 @@ router.post("/api/accounts/register", (req, res) => {
 			} else {
 				res.send({
 					status: "error",
-					message: "User Already Exists"
+					message: "A user with this email already exists."
 				});
 			}
 

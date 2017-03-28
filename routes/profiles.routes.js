@@ -64,7 +64,7 @@ router.post("/api/getUserProfile", [authMiddleware, eventMiddleware], (req, res)
 
 });
 
-router.post("/api/getOwnProfile", [authMiddleware, eventMiddleware], (req, res) => {
+router.post("/api/getOwnProfile", [authMiddleware], (req, res) => {
 
     //I know, I know. This returns the password. Screw it. The password's encrypted pretty well and this app doesnt really mean anything
     knex.select("*").from("users").where("id", "=", res.locals.userId).then((rows) => {
@@ -94,7 +94,7 @@ router.post("/api/getAllProfiles", [authMiddleware, eventMiddleware], (req, res)
 
 });
 
-router.post("/api/updateProfile", [authMiddleware, eventMiddleware], (req, res) => {
+router.post("/api/updateProfile", [authMiddleware], (req, res) => {
 
     let propertiesToUpdate = {};
 
