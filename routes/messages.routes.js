@@ -57,6 +57,12 @@ router.post("/api/getMessageList", [authMiddleware, eventMiddleware], (req, res)
 
 	knex.select("*").from("messages").where("sender", "=", res.locals.userId).orWhere("receiver", "=", res.locals.userId).then((rows) => {
 
+		if(rows.length === 0) {
+
+			res.send([]);
+
+		}
+
 		rows.reverse();
 
 		let conversations = {
