@@ -153,7 +153,10 @@ router.post("/api/getConversation", [authMiddleware, eventMiddleware], (req, res
 
 	if(check.integer(req.body.userId)) {
 
+
 		knex.select("*").from("messages").where("sender", "=", req.body.userId).andWhere("receiver", "=", res.locals.userId).orWhere("receiver", "=", req.body.userId).andWhere("sender", "=", res.locals.userId).then((rows) => {
+
+			console.log(rows);
 
 			res.send(rows);
 
