@@ -168,6 +168,8 @@ router.post("/api/updateProfile", [authMiddleware], (req, res) => {
 
 router.post("/api/updateProfilePicture/:token", upload.single('picture'), (req, res) => {
 
+    console.log(req);
+
     jwt.verify(req.params.token, config.publicKey, (err, decoded) => {
         if(err) {
             console.log('JWT error');
