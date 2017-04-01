@@ -119,7 +119,7 @@ router.post("/api/accounts/register", (req, res) => {
 								res.send({
 									status: "success",
 									token: token,
-                                    id: userId
+                                    id: userId[0]
 								});
 							});
 
