@@ -56,6 +56,68 @@ router.post("/api/getSavedProfiles", authMiddleware, (req, res) => {
 
 });
 
+router.post("/api/checkIfSavedProfile", authMiddleware, (req, res) => {
+
+    if(check.integer(req.body.userId)) {
+
+        knex.select("savedProfiles").from("users").where("id", "=", res.locals.userId).then((rows) => {
+
+            if(rows[0].savedProfiles.savedProfiles.indexOf(req.body.userId) > -1) {
+
+                res.send({
+                    status: true
+                });
+
+            } else {
+
+                res.send({
+                    status: false
+                });
+
+            }
+
+        });
+
+    } else {
+        res.send({
+            status: 'error',
+            message: config.parametersMessage
+        });
+    }
+
+});
+
+router.post("/api/checkIfSavedConversation", authMiddleware, (req, res) => {
+
+    if(check.integer(req.body.userId)) {
+
+        knex.select("savedConversations").from("users").where("id", "=", res.locals.userId).then((rows) => {
+
+            if(rows[0].savedConversations.savedConversations.indexOf(req.body.userId) > -1) {
+
+                res.send({
+                    status: true
+                });
+
+            } else {
+
+                res.send({
+                    status: false
+                });
+
+            }
+
+        });
+
+    } else {
+        res.send({
+            status: 'error',
+            message: config.parametersMessage
+        });
+    }
+
+});
+
 router.post("/api/getSavedConversations", authMiddleware, (req, res) => {
 
     knex.select("savedConversations").from("users").where("id", "=", res.locals.userId).then((rows) => {
@@ -102,8 +164,6 @@ router.post("/api/getSavedConversations", authMiddleware, (req, res) => {
 
         		}
 
-                console.log(savedConversations);
-
                 let tempConversations = [];
 
                 for(let b = 0; b < conversations.people.length; b++) {
@@ -117,8 +177,6 @@ router.post("/api/getSavedConversations", authMiddleware, (req, res) => {
                 }
 
                 conversations.people = tempConversations;
-
-                console.log(conversations.people);
 
         		let cleanConversations = [];
         		let conversationsCompleted = 0;
@@ -215,8 +273,6 @@ router.post("/api/saveProfile", authMiddleware, (req, res) => {
 
         knex.select("savedProfiles").from("users").where("id", "=", res.locals.userId).then((rows) => {
 
-            console.log(rows);
-
             let savedProfiles = rows[0].savedProfiles.savedProfiles;
 
             if(savedProfiles.indexOf(req.body.profileId) == -1) {
@@ -241,6 +297,44 @@ router.post("/api/saveProfile", authMiddleware, (req, res) => {
             status: 'error',
             message: config.parametersMessage
         });
+    }
+
+});
+
+router.post("/api/unsaveProfile", authMiddleware, (req, res) => {
+
+    if(check.integer(req.body.userId)) {
+
+        knex.select('savedProfiles').from('users').where('id', '=', res.locals.userId).then((rows) => {
+
+            let savedProfiles = rows[0].savedProfiles.savedProfiles;
+
+            let index = savedProfiles.indexOf(req.body.userId);
+
+            if(index > -1) {
+
+                savedProfiles.splice(index, 1);
+
+                knex("users").where("id", "=", res.locals.userId).update({savedProfiles: {savedProfiles: savedProfiles}}).then((err) => {
+
+                    res.send({
+                        status: 'success'
+                    });
+
+
+                });
+
+
+            } else {
+
+                res.send({
+                    status: 'success'
+                });
+
+            }
+
+        });
+
     }
 
 });
@@ -282,6 +376,47 @@ router.post("/api/saveConversation", authMiddleware, (req, res) => {
             message: config.parametersMessage
         });
 
+    }
+
+});
+
+router.post("/api/unsaveConversation", authMiddleware, (req, res) => {
+
+    if(check.number(req.body.userId)) {
+
+        knex.select("savedConversations").from("users").where("id", "=", res.locals.userId).then((rows) => {
+
+            let conversations = rows[0].savedConversations.savedConversations;
+
+            let index = conversations.indexOf(req.body.userId);
+
+            if(index > -1) {
+
+                conversations.splice(index, 1);
+
+                knex("users").where("id", "=", res.locals.userId).update({savedConversations: {savedConversations: conversations}}).then((err) => {
+                    
+                    res.send({
+                        status: 'success'
+                    });
+
+                });
+
+            } else {
+
+                res.send({
+                    status: 'success'
+                });
+
+            }
+
+        });
+
+    } else {
+        res.send({
+            status: 'error',
+            message: config.parametersMessage
+        });
     }
 
 });

@@ -120,8 +120,6 @@ router.post("/api/updateProfile", [authMiddleware], (req, res) => {
                 propertiesToUpdate[key] = {};
                 propertiesToUpdate[key] = value;
 
-                console.log(propertiesToUpdate[key]);
-
             }
 
             if(key === "linkedin" && check.string(value)) {
@@ -259,7 +257,7 @@ router.post("/api/updateProfilePicture", [authMiddleware, upload.single('picture
 
 router.post("/api/searchProfiles", [authMiddleware, eventMiddleware], (req, res) => {
 
-	let expectedResponses = 4,
+	let expectedResponses = 3,
 		results = [];
 
 	function checkIfSearchIsComplete(searchResults) {
@@ -305,11 +303,11 @@ router.post("/api/searchProfiles", [authMiddleware, eventMiddleware], (req, res)
 
 		});
 
-		knex.raw("SELECT * FROM users q WHERE to_tsvector('english', interests || ' ' || interests) @@ plainto_tsquery('english', '" + req.body.query + "' )").then((response) => {
+		/*knex.raw("SELECT * FROM users q WHERE to_tsvector('english', interests || ' ' || interests) @@ plainto_tsquery('english', '" + req.body.query + "' )").then((response) => {
 
 			checkIfSearchIsComplete(response.rows);
 
-		});
+		});*/
 
 	} else {
 		res.send({
