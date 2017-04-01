@@ -112,8 +112,7 @@ router.post("/api/accounts/register", (req, res) => {
                             },
                             interests: {
                                 interests: []
-                            },
-                            type: 'attendee'
+                            }
 						}).returning("id").into("users").then((userId) => {
 
 							generateToken(userId[0], (token) => {

@@ -39,4 +39,5 @@ app.use(require("./routes/accounts.routes.js"));
 app.use(require("./routes/events.routes.js"));
 app.use(require("./routes/messages.routes.js"));
 app.use(require("./routes/profiles.routes.js"));
-app.use(require("./routes/savedContent"));
+app.use(require("./routes/savedContent.routes.js"));
+app.use(require("./routes/organizations.routes.js"));
