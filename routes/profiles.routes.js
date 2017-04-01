@@ -3,7 +3,7 @@
 const router = require("express").Router(),
     knex = require("../database/knex.js"),
     fs = require('fs'),
-    s3 = require('s3'),
+    s3 = require('@faceleg/s3'),
     _ = require("lodash"),
     config = require("../config/config.js"),
 	check = require("check-types"),
@@ -16,15 +16,6 @@ const router = require("express").Router(),
 	authMiddleware = require("../middleware/auth.middleware.js"),
 	eventMiddleware = require("../middleware/event.middleware"),
 
-    sendFileOptions = {
-        root: __dirname + '/../public/',
-        dotfiles: 'deny',
-        headers: {
-            'x-timestamp': Date.now(),
-            'x-sent': true
-        }
-    },
-
     s3Client = s3.createClient({
         maxAsyncS3: 20,
         s3RetryCount: 3,
@@ -32,9 +23,11 @@ const router = require("express").Router(),
         multipartUploadThreshold: 20971520, // (20 MB)
         multipartUploadSize: 15728640, // (15 MB)
         s3Options: {
-        accessKeyId: "AKIAJHERTS2E5Z23PEOQ",
+            accessKeyId: "AKIAJHERTS2E5Z23PEOQ",
             secretAccessKey: "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",
-        },
+            region: 'us-east-2',
+            signatureVersion: 'v4'
+        }
     });
 
 router.post("/api/getUserProfile", [authMiddleware, eventMiddleware], (req, res) => {
@@ -168,8 +161,6 @@ router.post("/api/updateProfile", [authMiddleware], (req, res) => {
 
 router.post("/api/updateProfilePicture/:token", upload.single('picture'), (req, res) => {
 
-    console.log(req);
-
     jwt.verify(req.params.token, config.publicKey, (err, decoded) => {
         if(err) {
             console.log('JWT error');
@@ -203,41 +194,57 @@ router.post("/api/updateProfilePicture/:token", upload.single('picture'), (req, 
                     }
 
                     knex("users").where("id", "=", res.locals.userId).update({picture: res.locals.userId + extension}).then((err) => {
-                        let uploader = s3Client.uploadFile({
-                            localFile: 'uploads/pictures/' + req.file.filename,
 
-                            s3Params: {
-                                Bucket: 'airmeet-uploads',
-                                Key: 'pictures/' + res.locals.userId + extension,
-                                ContentType: req.file.mimetype
-                            }
-                        });
+                        fs.rename(__dirname + '/../uploads/pictures/' + req.file.filename, __dirname + '/../uploads/pictures/' + res.locals.userId + extension, (err) => {
 
-                        uploader.on('error', (err) => {
+                            if(err) {
 
-                            console.log("Picture uploading error");
-                            console.log(err.stack);
+                                console.log('renaming error');
+                                console.log(err);
 
-                            res.send({
-                                status: 'error',
-                                message: 'An error occured'
-                            });
-                        });
+                                res.sendStatus(500);
 
-                        uploader.on('end', () => {
-                            fs.unlink('uploads/pictures/' + req.file.filename, function(err) {
+                            } else {
 
-                                if(err) {
-                                    console.log("Picture uploading error");
-                                    console.log(err);
-                                }
+                                let uploader = s3Client.uploadFile({
+                                    localFile: __dirname + '/../uploads/pictures/' + res.locals.userId + extension,
 
-                                res.send({
-                                    status: 'success'
+                                    s3Params: {
+                                        Bucket: 'airmeet-uploads',
+                                        Key: 'pictures/' + res.locals.userId + extension,
+                                        ContentType: req.file.mimetype
+                                    }
                                 });
 
-                            });
+                                uploader.on('error', (err) => {
+
+                                    console.log("Picture uploading error");
+                                    console.log(err.stack);
+
+                                    res.send({
+                                        status: 'error',
+                                        message: 'An error occured'
+                                    });
+                                });
+
+                                uploader.on('end', () => {
+                                    fs.unlink('uploads/pictures/' + res.locals.userId + extension, function(err) {
+
+                                        if(err) {
+                                            console.log("Picture uploading error");
+                                            console.log(err);
+                                        }
+
+                                        res.send({
+                                            status: 'success'
+                                        });
+
+                                    });
+                                });
+                            }
+
                         });
+
                     });
 
 
