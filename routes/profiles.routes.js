@@ -8,6 +8,8 @@ const router = require("express").Router(),
     config = require("../config/config.js"),
 	check = require("check-types"),
 
+    jwt = require("jsonwebtoken"),
+
     multer = require('multer'),
     upload = multer({dest: 'uploads/pictures'}),
 
@@ -164,69 +166,88 @@ router.post("/api/updateProfile", [authMiddleware], (req, res) => {
 
 });
 
-router.post("/api/updateProfilePicture", [authMiddleware, upload.single('picture')], (req, res) => {
+router.post("/api/updateProfilePicture/:token", upload.single('picture'), (req, res) => {
 
-    if(req.file) {
-        if(req.file.mimetype === 'image/png' ||
-            req.file.mimetype === 'image/jpeg' ||
-            req.file.mimetype === 'image/pjpeg' ||
-            req.file.mimetype === 'image/svg+xml' ||
-            req.file.mimetype === 'image/gif') {
+    jwt.verify(req.params.token, config.publicKey, (err, decoded) => {
+        if(err) {
+            console.log('JWT error');
+            console.log(err);
+            res.send(500);
+        }
 
-            if(req.file.size <= 15728640) {
+        res.locals.userId = decoded.userId;
 
-                let extension;
+        if(req.file) {
+            if(req.file.mimetype === 'image/png' ||
+                req.file.mimetype === 'image/jpeg' ||
+                req.file.mimetype === 'image/pjpeg' ||
+                req.file.mimetype === 'image/svg+xml' ||
+                req.file.mimetype === 'image/gif') {
 
-                if(req.file.mimetype === 'image/png') {
-                    extension = '.png';
-                } else if(req.file.mimetype === 'image/jpeg') {
-                    extension = '.jpg';
-                } else if(req.file.mimetype === 'image/pjpeg') {
-                    extension = '.jpg';
-                } else if(req.file.mimetype === 'image/svg+xml') {
-                    extension = '.svg';
-                } else if(req.file.mimetype === 'image/gif') {
-                    extension = '.gif';
-                }
+                if(req.file.size <= 15728640) {
 
-                knex("users").where("id", "=", res.locals.userId).update({picture: res.locals.userId + extension}).then((err) => {
-                    let uploader = s3Client.uploadFile({
-                        localFile: 'uploads/pictures/' + req.file.filename,
+                    let extension;
 
-                        s3Params: {
-                            Bucket: 'airmeet-uploads',
-                            Key: 'pictures/' + res.locals.userId + extension,
-                            ContentType: req.file.mimetype
-                        }
-                    });
+                    if(req.file.mimetype === 'image/png') {
+                        extension = '.png';
+                    } else if(req.file.mimetype === 'image/jpeg') {
+                        extension = '.jpg';
+                    } else if(req.file.mimetype === 'image/pjpeg') {
+                        extension = '.jpg';
+                    } else if(req.file.mimetype === 'image/svg+xml') {
+                        extension = '.svg';
+                    } else if(req.file.mimetype === 'image/gif') {
+                        extension = '.gif';
+                    }
 
-                    uploader.on('error', (err) => {
+                    knex("users").where("id", "=", res.locals.userId).update({picture: res.locals.userId + extension}).then((err) => {
+                        let uploader = s3Client.uploadFile({
+                            localFile: 'uploads/pictures/' + req.file.filename,
 
-                        console.log("Picture uploading error");
-                        console.log(err.stack);
-
-                        res.send({
-                            status: 'error',
-                            message: 'An error occured'
-                        });
-                    });
-
-                    uploader.on('end', () => {
-                        fs.unlink('uploads/pictures/' + req.file.filename, function(err) {
-
-                            if(err) {
-                                console.log("Picture uploading error");
-                                console.log(err);
+                            s3Params: {
+                                Bucket: 'airmeet-uploads',
+                                Key: 'pictures/' + res.locals.userId + extension,
+                                ContentType: req.file.mimetype
                             }
+                        });
+
+                        uploader.on('error', (err) => {
+
+                            console.log("Picture uploading error");
+                            console.log(err.stack);
 
                             res.send({
-                                status: 'success'
+                                status: 'error',
+                                message: 'An error occured'
                             });
+                        });
 
+                        uploader.on('end', () => {
+                            fs.unlink('uploads/pictures/' + req.file.filename, function(err) {
+
+                                if(err) {
+                                    console.log("Picture uploading error");
+                                    console.log(err);
+                                }
+
+                                res.send({
+                                    status: 'success'
+                                });
+
+                            });
                         });
                     });
-                });
 
+
+                } else {
+
+                    fs.unlink('uploads/pictures/' + req.file.filename);
+
+                    res.send({
+                        status: 'error',
+                        message: 'Image too large'
+                    });
+                }
 
             } else {
 
@@ -234,25 +255,16 @@ router.post("/api/updateProfilePicture", [authMiddleware, upload.single('picture
 
                 res.send({
                     status: 'error',
-                    message: 'Image too large'
+                    message: 'Invalid image format'
                 });
             }
-
         } else {
-
-            fs.unlink('uploads/pictures/' + req.file.filename);
-
             res.send({
                 status: 'error',
-                message: 'Invalid image format'
+                message: 'You forgot to send a file :P'
             });
         }
-    } else {
-        res.send({
-            status: 'error',
-            message: 'You forgot to send a file :P'
-        });
-    }
+    });
 });
 
 router.post("/api/searchProfiles", [authMiddleware, eventMiddleware], (req, res) => {
