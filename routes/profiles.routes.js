@@ -212,7 +212,8 @@ router.post("/api/updateProfilePicture/:token", upload.single('picture'), (req, 
                                     s3Params: {
                                         Bucket: 'airmeet-uploads',
                                         Key: 'pictures/' + res.locals.userId + extension,
-                                        ContentType: req.file.mimetype
+                                        ContentType: req.file.mimetype,
+                                        ACL: "public-read"
                                     }
                                 });
 
