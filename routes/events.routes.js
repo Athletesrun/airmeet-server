@@ -15,7 +15,7 @@ router.post("/api/joinEvent", [authMiddleware], (req, res) => {
 
     if(check.string(req.body.eventCode)) {
 
-        knex.select("*").from("events").where("accessCode", "=", req.body.eventCode).then((rows) => {
+        knex.select("*").from("events").where("accessCode", "=", req.body.eventCode.toLowerCase()).then((rows) => {
 
             if(check.nonEmptyArray(rows)) {
 
