@@ -13,7 +13,7 @@ const router = require("express").Router(),
 
 router.post("/api/getAllOrganizations", [authMiddleware, eventMiddleware], (req, res) => {
 
-    knex.select('name, id, lat, lng, picture').from("organizations").where("event", "=", res.locals.event).then((rows) => {
+    knex.select("name", "id", "lat", "lng", "picture").from("organizations").where("event", "=", res.locals.event).then((rows) => {
 
         res.send(rows);
 
