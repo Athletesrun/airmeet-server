@@ -176,57 +176,62 @@ router.post("/api/getSavedConversations", authMiddleware, (req, res) => {
 
                 }
 
-                conversations.people = tempConversations;
+                if(tempConversations.length === 0) {
+                    res.send([]);
+                } else {
 
-        		let cleanConversations = [];
-        		let conversationsCompleted = 0;
+                    conversations.people = tempConversations;
 
-        		for(let i in conversations.people) {
+            		let cleanConversations = [];
+            		let conversationsCompleted = 0;
 
-        			knex.select("firstName", "lastName", "id").from("users").where("id", "=", conversations.people[i]).then((rows) => {
+            		for(let i in conversations.people) {
 
-        				conversationsCompleted++;
+            			knex.select("firstName", "lastName", "id").from("users").where("id", "=", conversations.people[i]).then((rows) => {
 
-        				rows[0].lastMessage = conversations.lastMessages[i];
-        				rows[0].date = conversations.date[i];
+            				conversationsCompleted++;
 
-        				cleanConversations.push(rows[0]);
+            				rows[0].lastMessage = conversations.lastMessages[i];
+            				rows[0].date = conversations.date[i];
 
-        				if(conversationsCompleted == conversations.people.length) {
+            				cleanConversations.push(rows[0]);
 
-        					let dates = [];
+            				if(conversationsCompleted == conversations.people.length) {
 
-        					for(let j in cleanConversations) {
+            					let dates = [];
 
-        						dates.push(cleanConversations[j].date.getTime());
+            					for(let j in cleanConversations) {
 
-        					}
+            						dates.push(cleanConversations[j].date.getTime());
 
-        					dates = algorithms.Sorting.quicksort(dates);
+            					}
 
-        					let sortedMessages = new Array(dates.length);
+            					dates = algorithms.Sorting.quicksort(dates);
 
-        					for(let x in dates) {
+            					let sortedMessages = new Array(dates.length);
 
-        						for(let y in cleanConversations) {
+            					for(let x in dates) {
 
-        							if(cleanConversations[y].date.getTime() === dates[x]) {
+            						for(let y in cleanConversations) {
 
-        								sortedMessages[x] = cleanConversations[y];
+            							if(cleanConversations[y].date.getTime() === dates[x]) {
 
-        							}
+            								sortedMessages[x] = cleanConversations[y];
 
-        						}
+            							}
 
-        					}
+            						}
 
-        					res.send(sortedMessages.reverse());
+            					}
 
-        				}
+            					res.send(sortedMessages.reverse());
 
-        			});
+            				}
 
-        		}
+            			});
+
+            		}
+                }
             });
         }
     });
@@ -395,7 +400,7 @@ router.post("/api/unsaveConversation", authMiddleware, (req, res) => {
                 conversations.splice(index, 1);
 
                 knex("users").where("id", "=", res.locals.userId).update({savedConversations: {savedConversations: conversations}}).then((err) => {
-                    
+
                     res.send({
                         status: 'success'
                     });
