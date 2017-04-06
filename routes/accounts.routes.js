@@ -42,7 +42,7 @@ router.post("/api/accounts/login", (req, res) => {
 
         req.body.email = req.body.email.toLowerCase();
 
-		knex.select("email", "password", "password", "id").from("users").where("email", "=", req.body.email).then((rows) => {
+		knex.select("email", "password", "password", "id", "event").from("users").where("email", "=", req.body.email).then((rows) => {
 
 			if(check.nonEmptyArray(rows)) {
 				bcrypt.compare(req.body.password, rows[0].password, (err, hashResponse) => {
@@ -58,7 +58,8 @@ router.post("/api/accounts/login", (req, res) => {
 							res.send({
 								status: "success",
 								token: token,
-                                id: rows[0].id
+                                id: rows[0].id,
+                                event: rows[0].event
 							});
 						});
 
