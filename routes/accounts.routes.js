@@ -39,6 +39,9 @@ function generateToken(userId, callback) {
 }
 router.post("/api/accounts/login", (req, res) => {
 	if(check.string(req.body.email) && check.string(req.body.password)) {
+
+        req.body.email = req.body.email.toLowerCase();
+
 		knex.select("email", "password", "password", "id").from("users").where("email", "=", req.body.email).then((rows) => {
 
 			if(check.nonEmptyArray(rows)) {
@@ -87,6 +90,8 @@ router.post("/api/accounts/login", (req, res) => {
 router.post("/api/accounts/register", (req, res) => {
 
 	if(check.string(req.body.email) && check.string(req.body.password) && check.string(req.body.firstName) && check.string(req.body.lastName)) {
+
+        req.body.email = req.body.email.toLowerCase();
 
 		knex.select("email").from("users").where("email", "=", req.body.email).then((rows) => {
 
