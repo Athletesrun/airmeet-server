@@ -8,8 +8,10 @@ module.exports = (req, res, next) => {
         jwt.verify(req.body.token, config.publicKey, (err, decoded) => {
             if(err) {
 
-                console.log("JWT Verify error: " + err);
-                res.sendStatus(500);
+                res.send({
+                    status: 'error',
+                    message: 'Invalid token'
+                });
 
             } else {
 

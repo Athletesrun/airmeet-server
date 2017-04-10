@@ -7,7 +7,7 @@ if(process.env.NODE_ENV === "production") {
 
 	knex = require("knex")({
 		client: "pg",
-		connection: "postgres://nlghwvfayvoifk:af3da8521ddd4a222cf85f36c84f68af569e169387479ed40fff6dd15dd82d91@ec2-107-20-163-238.compute-1.amazonaws.com:5432/dfic3203som2bm"
+		connection: "postgres://airmeet:!beliEVEthAtwEW!LLuuin9876@airmeet.cnanojewxddp.us-east-2.rds.amazonaws.com:5432/airmeet"
 	});
 
 } else {
