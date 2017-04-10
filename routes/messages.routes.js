@@ -81,7 +81,7 @@ router.post("/api/getMessageList", [authMiddleware, eventMiddleware], (req, res)
 					conversations.people.push(rows[i].receiver);
 					conversations.lastMessages.push(rows[i].message);
 					conversations.date.push(rows[i].date);
-					conversations.picture.push(rows[i].picture);
+					conversations.pictures.push(rows[i].picture);
 
 				}
 
@@ -91,7 +91,7 @@ router.post("/api/getMessageList", [authMiddleware, eventMiddleware], (req, res)
 					conversations.people.push(rows[i].sender);
 					conversations.lastMessages.push(rows[i].message);
 					conversations.date.push(rows[i].date);
-					conversations.picture.push(rows[i].picture);
+					conversations.pictures.push(rows[i].picture);
 				}
 
 			}
