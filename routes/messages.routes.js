@@ -103,7 +103,7 @@ router.post("/api/getMessageList", [authMiddleware, eventMiddleware], (req, res)
 
 		for(let i in conversations.people) {
 
-			knex.select("firstName", "lastName", "id").from("users").where("id", "=", conversations.people[i]).then((rows) => {
+			knex.select("firstName", "lastName", "id", "picture").from("users").where("id", "=", conversations.people[i]).then((rows) => {
 
 				conversationsCompleted++;
 
