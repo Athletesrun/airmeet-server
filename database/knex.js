@@ -10,8 +10,12 @@ if(process.env.NODE_ENV === "production") {
 		connection: "postgres://airmeet:!beliEVEthAtwEW!LLuuin9876@airmeet.cnanojewxddp.us-east-2.rds.amazonaws.com:5432/airmeet",
 		pool: {
 			min: 2,
-			max: 100
-		}
+			max: 10000,
+			afterCreate: () => {
+				console.log('after created');
+			}
+		},
+		acquireConnectionTimeout: 60000
 	});
 
 } else {
