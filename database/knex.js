@@ -17,7 +17,7 @@ if(process.env.NODE_ENV === "production") {
 			database: 'airmeet'
 		},
 		pool: {
-			min: 2,
+			min: 0,
 			max: 10000,
 			afterCreate: () => {
 				console.log('after created');
