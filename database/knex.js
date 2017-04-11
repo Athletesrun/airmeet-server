@@ -15,14 +15,9 @@ if(process.env.NODE_ENV === "production") {
 			database: 'airmeet'
 		},
 		pool: {
-			min: 0,
-			max: 10000,
-			afterCreate: () => {
-				console.log('after created');
-			},
-			requestTimeout: 10000
-		},
-		acquireConnectionTimeout: 1000000
+			min: 2,
+			max: 50
+		}
 	});
 
 } else {
