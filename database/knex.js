@@ -7,7 +7,13 @@ if(process.env.NODE_ENV === "production") {
 
 	knex = require("knex")({
 		client: "pg",
-		connection: "postgres://airmeet:!beliEVEthAtwEW!LLuuin9876@airmeet.cnanojewxddp.us-east-2.rds.amazonaws.com:5432/airmeet",
+		//connection: "postgres://airmeet:!beliEVEthAtwEW!LLuuin9876@airmeet.cnanojewxddp.us-east-2.rds.amazonaws.com:5432/airmeet",
+		connection: {
+			host: 'airmeet.cnanojewxddp.us-east-2.rds.amazonaws.com',
+			user: 'airmeet',
+			password: '!beliEVEthAtwEW!LLuuin9876',
+			database: 'airmeet'
+		},
 		pool: {
 			min: 2,
 			max: 10000,
