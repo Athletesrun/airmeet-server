@@ -13,7 +13,8 @@ if(process.env.NODE_ENV === "production") {
 			max: 10000,
 			afterCreate: () => {
 				console.log('after created');
-			}
+			},
+			requestTimeout: 70000
 		},
 		acquireConnectionTimeout: 60000
 	});
