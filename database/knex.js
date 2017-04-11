@@ -5,8 +5,6 @@ if(process.env.NODE_ENV === "production") {
 	console.log("WARNING WARNING WARNING");
 	console.log("You are running in production mode. This can cause things to break! Get out of production mode!");
 
-	console.log('benny ben');
-
 	knex = require("knex")({
 		client: "pg",
 		//connection: "postgres://airmeet:!beliEVEthAtwEW!LLuuin9876@airmeet.cnanojewxddp.us-east-2.rds.amazonaws.com:5432/airmeet",
@@ -22,9 +20,9 @@ if(process.env.NODE_ENV === "production") {
 			afterCreate: () => {
 				console.log('after created');
 			},
-			requestTimeout: 70000
+			requestTimeout: 10000
 		},
-		acquireConnectionTimeout: 60000
+		acquireConnectionTimeout: 1000000
 	});
 
 } else {
